@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@layer components {
+    .genres_title {
+        @apply text-lg font-bold mb-2;
+    }
+    .genres_container {
+        @apply grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-1 justify-items-start mb-5 wrap-normal flex-wrap;
+    }
+    .checkbox_wrapper{
+        @apply flex items-center gap-2;
+    }
+}

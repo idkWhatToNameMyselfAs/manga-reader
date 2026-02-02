@@ -32,6 +32,7 @@ const HomePage = () => {
     const [showCheckbox, setShowCheckbox] = useState(false);
     const [showManga, setShowManga] = useState(false);
     const [tags, setTags] = useState<Array<{id: string, name: string}>>([]);
+    const [mangaList, setMangaList] = useState<any[]>([]);
 
     // Automatically fetch tags while loading the page
     useEffect(() => {
@@ -56,7 +57,14 @@ const HomePage = () => {
             return [];
         }
     };
-    const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const getCoverUrl = (manga: any) => {
+        const coverRelation = manga.relationships?.find((rel: any) => rel.type === 'cover_art');
+        const fileName = coverRelation?.attributes?.fileName;
+        if (!fileName) return null;
+        return `https://uploads.mangadex.org/covers/${manga.id}/${fileName}`;
+    };
+
+    const handleFilterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const formValues = Object.fromEntries(formData.entries());
@@ -82,8 +90,8 @@ const HomePage = () => {
                 includedTags.forEach(tag => queryParams.append('includedTags', tag));
                 contentRating.forEach(rating => queryParams.append('contentRating', rating));
                 publicationDemographic.forEach(demo => queryParams.append('publicationDemographic', demo));
-                queryParams.append('limit', '20');
-                queryParams.append('offset', '0');
+                queryParams.append('limit', '20'); // Can change later for pagination
+                queryParams.append('offset', '0'); // For pagination, can be modified later
                 const response = await fetch(`/api/manga/search?${queryParams.toString()}`);
                 const data = await response.json();
                 return data;
@@ -93,7 +101,9 @@ const HomePage = () => {
                 return null;
             }
         };
-        const data = fetchManga();
+        const data = await fetchManga(); // Add cache in the future for faster loading
+        setMangaList(data?.data ?? []);
+        setShowManga(true);
     };
 
     return (
@@ -143,14 +153,25 @@ const HomePage = () => {
                     </form>
                 )}
             </div>
-            {showManga && (<div>
-                {/* Manga list display component goes here */}
-                {
-
-                }
-
-                <h2>Manga List (to be implemented)</h2>
-            </div>
+            {showManga && (
+                <div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {mangaList.map((manga) => {
+                            const coverUrl = getCoverUrl(manga);
+                            const title = manga.attributes?.title?.en || manga.attributes?.title?.vi || 'No translated title';
+                            return (
+                                <div key={manga.id} className="border p-2">
+                                    {coverUrl ? (
+                                        <img src={coverUrl} alt={title} className="w-full h-auto" />
+                                    ) : (
+                                        <div className="w-full h-48 bg-gray-200" />
+                                    )}
+                                    <h3 className="mt-2 text-sm font-semibold">{title}</h3>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             )}
         </div>
     );

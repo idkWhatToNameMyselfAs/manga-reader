@@ -11,13 +11,16 @@ export async function GET(request: Request) {
         const includedTags = searchParams.getAll('includedTags');
         const contentRating = searchParams.getAll('contentRating');
         const publicationDemographic = searchParams.getAll('publicationDemographic');
+        const availableTranslatedLanguage = searchParams.getAll('availableTranslatedLanguage') || ['en', 'vi'];
         const response = await axios.get(`${baseUrl}`, {
             params: {
                 limit,
                 offset,
                 'includedTags[]': includedTags,
                 'contentRating[]': contentRating,
-                'publicationDemographic[]': publicationDemographic
+                'publicationDemographic[]': publicationDemographic,
+                'availableTranslatedLanguage[]': availableTranslatedLanguage,
+                'includes[]': ['cover_art']
             }});
         return Response.json(response.data, { status: 200 });
         

@@ -1,2 +1,5 @@
 ### Get all manga tags
 GET http://localhost:3000/api/manga/tag
+
+### Search manga with filters
+GET http://localhost:3000/api/manga/search?limit=10&offset=0&includedTags=391b0423-d847-456f-aff0-8b0cfc03066b&contentRating=safe&publicationDemographic=shounen

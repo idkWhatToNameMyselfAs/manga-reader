@@ -23,14 +23,15 @@
  * Click -> manga page
  * Bottom: pagination
  */
+// DATA ONLY TAKE FROM /PUBLIC/
 'use client';
 import Header from './component/Header';
 import {useState, useEffect} from 'react';
 import './css/home.css';
 const HomePage = () => {
     const [showCheckbox, setShowCheckbox] = useState(false);
+    const [showManga, setShowManga] = useState(false);
     const [tags, setTags] = useState<Array<{id: string, name: string}>>([]);
-    const [showMangaList, setShowMangaList] = useState(false);
 
     // Automatically fetch tags while loading the page
     useEffect(() => {
@@ -42,17 +43,57 @@ const HomePage = () => {
     }, []);
 
     const displayTags = async () => {
-        try {
-            const response = await fetch('/api/manga/tag?limit=0&offset=0');
+        try{
+            const response = await fetch('data/MDtags.json');
             const data = await response.json();
-            return data.data.map((tag: any) => ({
+            return data.data.map((tag:any) => ({
                 id: tag.id,
                 name: tag.attributes.name.en
             }));
-        } catch (error) {
-            console.error('Error fetching tags:', error);
+        }
+        catch(e){
+            console.error('Error loading tags from local JSON:', e);
             return [];
         }
+    };
+    const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const formValues = Object.fromEntries(formData.entries());
+        console.log('Selected filters:', formValues);
+        // Process selected filters and fetch manga list accordingly
+        // Notes: tags uses UUID, demographic and contentRating use string values
+        const includedTags: string[] = [];
+        const contentRating: string[] = [];
+        const publicationDemographic: string[] = [];
+        for (const [key, value] of formData.entries()) {
+            if (tags.find(tag => tag.id === value)) {
+                includedTags.push(value.toString());
+            } else if (["safe", "suggestive", "erotica", "  pornographic"].includes(value.toString())) {
+                contentRating.push(value.toString());
+            } else if (["shounen", "shoujo", "josei", "seinen", "none"].includes(value.toString())) {
+                publicationDemographic.push(value.toString());
+            }
+        }
+        // Fetch manga based on selected filters
+        const fetchManga = async () => {
+            try{
+                const queryParams = new URLSearchParams();
+                includedTags.forEach(tag => queryParams.append('includedTags', tag));
+                contentRating.forEach(rating => queryParams.append('contentRating', rating));
+                publicationDemographic.forEach(demo => queryParams.append('publicationDemographic', demo));
+                queryParams.append('limit', '20');
+                queryParams.append('offset', '0');
+                const response = await fetch(`/api/manga/search?${queryParams.toString()}`);
+                const data = await response.json();
+                return data;
+            }
+            catch(e){
+                console.error('Error fetching manga with filters:', e);
+                return null;
+            }
+        };
+        const data = fetchManga();
     };
 
     return (
@@ -64,7 +105,7 @@ const HomePage = () => {
                     className='border hover:cursor-pointer'
                     >Toggle Genres</button>
                 {showCheckbox && (
-                    <div>
+                    <form onSubmit={handleFilterSubmit}>
                         <h3 className='genres_title'>MangaDex Demographic</h3>
                         <div className="genres_container">
                             {
@@ -98,10 +139,19 @@ const HomePage = () => {
                                 ))
                             }
                         </div>
-                        <button>Confirm filter</button>
-                    </div>
+                        <button type="submit" className="border hover:cursor-pointer hover:underline">Confirm</button>
+                    </form>
                 )}
             </div>
+            {showManga && (<div>
+                {/* Manga list display component goes here */}
+                {
+
+                }
+
+                <h2>Manga List (to be implemented)</h2>
+            </div>
+            )}
         </div>
     );
 };

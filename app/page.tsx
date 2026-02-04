@@ -28,9 +28,11 @@
 import Header from './component/Header';
 import {useState, useEffect} from 'react';
 import './css/home.css';
+import Link from 'next/link';
 const HomePage = () => {
     const [showCheckbox, setShowCheckbox] = useState(false);
     const [showManga, setShowManga] = useState(false);
+    const [fetchManga, setFetchManga] = useState(false);
     const [tags, setTags] = useState<Array<{id: string, name: string}>>([]);
     const [mangaList, setMangaList] = useState<any[]>([]);
 
@@ -66,6 +68,7 @@ const HomePage = () => {
 
     const handleFilterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setFetchManga(true);
         const formData = new FormData(e.currentTarget);
         const formValues = Object.fromEntries(formData.entries());
         console.log('Selected filters:', formValues);
@@ -104,6 +107,7 @@ const HomePage = () => {
         const data = await fetchManga(); // Add cache in the future for faster loading
         setMangaList(data?.data ?? []);
         setShowManga(true);
+        setFetchManga(false);
     };
 
     return (
@@ -149,18 +153,21 @@ const HomePage = () => {
                                 ))
                             }
                         </div>
-                        <button type="submit" className="border hover:cursor-pointer hover:underline">Confirm</button>
+                        <button type="submit" className="border hover:cursor-pointer hover:underline"
+                        disabled={fetchManga}
+                        >Confirm</button>
                     </form>
                 )}
             </div>
             {showManga && (
                 <div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
                         {mangaList.map((manga) => {
                             const coverUrl = getCoverUrl(manga);
-                            const title = manga.attributes?.title?.en || manga.attributes?.title?.vi || 'No translated title';
+                            const title = manga.attributes?.title?.en || manga.attributes?.title?.vi || manga.attributes?.title?.['ja-ro'] || 'No translated title';
                             return (
-                                <div key={manga.id} className="border p-2">
+                                <Link href={`manga/${manga.id}`} key={manga.id}>
+                                <div className="border p-2">
                                     {coverUrl ? (
                                         <img src={coverUrl} alt={title} className="w-full h-auto" />
                                     ) : (
@@ -168,8 +175,13 @@ const HomePage = () => {
                                     )}
                                     <h3 className="mt-2 text-sm font-semibold">{title}</h3>
                                 </div>
+                                </Link>
                             );
                         })}
+                    </div>
+                    <div>
+                        {/* Pagination component can be added here later 
+                        Call a seperate function to call api for next lists*/}
                     </div>
                 </div>
             )}

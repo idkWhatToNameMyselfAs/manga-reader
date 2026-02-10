@@ -164,9 +164,11 @@ const HomePage = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
                         {mangaList.map((manga) => {
                             const coverUrl = getCoverUrl(manga);
+                            const coverRelation = manga.relationships?.find((rel: any) => rel.type === 'cover_art');
+                            const fileName = coverRelation?.attributes?.fileName;
                             const title = manga.attributes?.title?.en || manga.attributes?.title?.vi || manga.attributes?.title?.['ja-ro'] || 'No translated title';
                             return (
-                                <Link href={`manga/${manga.id}`} key={manga.id}>
+                                <Link href={`manga/${manga.id}${fileName ? `?cover=${fileName}` : ''}`} key={manga.id}>
                                 <div className="border p-2">
                                     {coverUrl ? (
                                         <img src={coverUrl} alt={title} className="w-full h-auto" />

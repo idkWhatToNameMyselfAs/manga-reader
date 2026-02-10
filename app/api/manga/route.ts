@@ -19,6 +19,7 @@ export async function GET(request: Request){
     }
     
     catch(e){
-        return Response.json({ error: "Failed to get manga chapters" }, { status: 500 });
+        return Response.json({ error: "Failed to get manga infos" }, { status: 500 });
     }
 }
+    

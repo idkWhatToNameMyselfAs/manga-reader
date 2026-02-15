@@ -3,3 +3,13 @@ GET http://localhost:3000/api/manga/tag
 
 ### Search manga with filters
 GET http://localhost:3000/api/manga/search?limit=10&offset=0&includedTags=391b0423-d847-456f-aff0-8b0cfc03066b&contentRating=safe&publicationDemographic=shounen
+
+### Get manga by id
+GET http://localhost:3000/api/manga?mangaId=8a1b2e8c-afd9-4c43-ba96-0eb1507a4ddf
+
+### Get chapter list for manga
+GET http://localhost:3000/api/manga/chapter?id=8a1b2e8c-afd9-4c43-ba96-0eb1507a4ddf
+
+### Get chapter page URLs
+GET http://localhost:3000/api/manga/page?chapterId=dff6f72c-5c5c-47cf-8084-d81799afca0a
+

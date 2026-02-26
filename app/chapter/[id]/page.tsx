@@ -12,31 +12,67 @@
  * - Display chapter title in pagination if available, otherwise display chapter number or "Chapter X"
  */
 
+
+'use client';
 import React, {useState, useEffect} from 'react';
 import {useParams, useSearchParams} from 'next/navigation';
 import Header from '@/app/component/Header';
 
 const ChapterPage = () => {
     const params = useParams<{id: string}>();
-    const [searchParams] = useSearchParams();
+    const searchParams = useSearchParams();
     const chapterId = params.id;
+    const chapterTitle = searchParams.get('chapterTitle');
+    const mangaTitle = searchParams.get('mangaTitle');
     const [chapterInfo, setChapterInfo] = useState<any>(null);
     const [imageList, setImageList] = useState<string[]>([]);
     // Call /api/manga/page to get chapter image list
     const fetchChapterInfo = async (chapterId: string) => {
         try{
-            const response = await fetch(`/api/manga/page/id=${chapterId}`);
+            const response = await fetch(`/api/manga/page?chapterId=${chapterId}`);
             const data = await response.json();
-            setChapterInfo(data.chapterInfo);
-            setImageList(data.imageList);
+            const urls = Array.isArray(data?.urls) ? data.urls : [];
+
+            setChapterInfo({
+                title: data?.attributes?.title || chapterTitle || "No Chapter Title",
+                mangaTitle: mangaTitle || ''
+            });
+            setImageList(urls);
         }
         catch(e){
             console.error('Error fetching chapter info:', e);
+            setImageList([]);
         }
     }
     useEffect(() => {
-        
-    })
+        // Get params -> chapterId -> fetch chapter info and image list
+        if(chapterId){
+            fetchChapterInfo(chapterId);
+        }
+    }, [chapterId, chapterTitle, mangaTitle])
+    return (
+        <div>
+            <Header />
+            {// Display chapter title and manga title if available
+            chapterInfo && (
+                <div>
+                    <h1>{chapterInfo.title}</h1>
+                    <h2>{chapterInfo.mangaTitle}</h2>
+                </div>
+            )}
+            {// Display image list
+            imageList.length > 0 ? (
+                <div>
+                    {imageList.map((imageUrl, index) => (
+                        <img key={index} src={imageUrl} alt={`Page ${index + 1}`} style={{width: '100%', marginBottom: '20px'}} loading="lazy" />
+                    ))}
+                </div>
+            ) : (
+
+                <p>Loading chapter content...</p>
+            )}
+        </div>
+    );
 };
 
 export default ChapterPage;
